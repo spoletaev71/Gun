@@ -1,0 +1,64 @@
+{
+  "main_frame": {
+    "shot": 15,
+    "score": 4,
+    "battlefield": {
+      "gun": [
+        {
+          "gun_coords": [
+            20,
+            681
+          ],
+          "job": true
+        }
+      ],
+      "decors": [
+        {
+          "x": 641,
+          "y": 403,
+          "job": true
+        },
+        {
+          "x": 976,
+          "y": 496,
+          "job": true
+        }
+      ],
+      "targets": [
+        {
+          "x": 1300,
+          "y": 407,
+          "r": 26,
+          "color": "red",
+          "job": true
+        },
+        {
+          "x": 1105,
+          "y": 639,
+          "r": 25,
+          "color": "red",
+          "job": true
+        }
+      ],
+      "bullets": [
+        {
+          "x": 1396.7316747219252,
+          "y": 628.8480048489546,
+          "vx": -4.642350577026056,
+          "vy": 11.620563787964423,
+          "color": "red",
+          "live": 250,
+          "job": true
+        }
+      ],
+      "bullet_counter": 1,
+      "last_hit_bullet_number": 4,
+      "catch_victory_job": true,
+      "canvas_restart_job": false
+    },
+    "geometry": [
+      1536,
+      781
+    ]
+  }
+}
