@@ -11,6 +11,7 @@ from PIL import ImageTk, Image
 # импортируем самописаный модуль с функцией расчета попадания снаряда по мишени
 import hit_check
 
+
 DT = 30  # FPS
 VICTORY_MSG_TIME = 3000  # Время задержки между циклами игры
 BACKGROUND = 'ScreenBG01.jpg'  # Картинка для фона на холст
