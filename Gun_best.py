@@ -1,19 +1,19 @@
 import copy
+import hit_check
 import json
 import math
 import os
 import tkinter as tk
 from abc import ABC, abstractmethod
+from PIL import ImageTk, Image
 from random import randrange as rnd, choice
 from tkinter import filedialog
 from tkinter import messagebox
-from PIL import ImageTk, Image
-# импортируем самописаный модуль с функцией расчета попадания снаряда по мишени
-import hit_check
 
 
 DT = 30  # FPS
-VICTORY_MSG_TIME = 3000  # Время задержки между циклами игры
+VICTORY_MSG_TIME = 4000  # Время задержки между циклами игры
+# GAME_OVER_MSG_TIME = 60000  # Время задержки по окончании игры
 BACKGROUND = 'ScreenBG01.jpg'  # Картинка для фона на холст
 
 
@@ -24,7 +24,7 @@ def pass_event(event):
 
 def about():
     """Вывод данных по пункту меню `О программе`."""
-    messagebox.showinfo("О программе", "Игра \"Пушка\" создана на основе заготовки, написаной преподавателем МФТИ, "
+    messagebox.showinfo("О программе", "Игра \"Пушка\" создана на основе заготовки, написанной преподавателем МФТИ, "
                                        "как практика по обучению программирования на языке Python v3.\n\n"
                                        "Автор доработки: Полетаев Сергей")
 
@@ -50,7 +50,6 @@ class Agent(ABC):
     Этот класс-обертка частично реализует изменения состояния игры `job` и обновление элементов на холсте `canvas`
     в зависимости от `DT`.
     """
-
     def __init__(self):
         self.job = None
         self.canvas = None
@@ -84,7 +83,6 @@ class Agent(ABC):
 class Ball(Agent):
     """Класс для создания снарядов на холсте `canvas`. Создается и наследует методы от абстрактного класса `Agent(ABC)`.
     """
-
     def __init__(self, canvas, x, y, vx, vy, color=None, live=None, job_init=None):
         super().__init__()
         self.job = job_init
@@ -128,14 +126,14 @@ class Ball(Agent):
             self.vy += 0.098  # коэффициент - типа ускорение свободного падения
             self.y += self.vy * 0.65
             self.x += self.vx * 0.65
-            self.vx *= 0.997  # типа коэффициент сопротивленя воздуха
+            self.vx *= 0.997  # типа коэффициент сопротивления воздуха
         elif self.vx ** 2 + self.vy ** 2 > 4:  # проверка не пора ли прекратить отскок от нижней стенки
-            self.vy = -self.vy * 0.65
-            self.vx = self.vx * 0.65
+            self.vy *= -0.65
+            self.vx *= 0.65
             self.y = window_size[1] - 61
 
         if self.x > window_size[0] - 20:  # проверка не пора ли отскочить от правой стенки
-            self.vx = - self.vx * 0.65
+            self.vx *= -0.65
             self.x = window_size[0] - 21  # иначе залипнет у стенки
         self.set_coords()
 
@@ -213,7 +211,6 @@ class Gun(Agent):
     """Класс для отрисовки фоновой картинки и пушки на холсте `canvas`.
     Создается и наследует методы от абстрактного класса `Agent(ABC)`.
     """
-
     def __init__(self, canvas, gun_coords=None, job_init=None):
         super().__init__()
 
@@ -370,14 +367,14 @@ class Target(Agent):
     """Класс для создания мишени на холсте `canvas`. Создается и наследует методы от абстрактного класса `Agent(ABC)`.
     """
 
-    def __init__(self, canvas, x=None, y=None, r=None, color=None, job_init=None):
+    def __init__(self, canvas, level=0, x=None, y=None, r=None, color=None, job_init=None):
         super().__init__()
         self.job = job_init
         # Область вывода мишеней
         x = self.x = rnd((window_size[0] // 3) << 1, window_size[0] - 20) if x is None else x
         y = self.y = rnd(window_size[1] >> 1, window_size[1] - 40) if y is None else y
         # Радиус мишеней
-        r = self.r = rnd(10, 50) if r is None else r
+        r = self.r = rnd(42 - level, 51 - level) if r is None else r
         color = self.color = 'red' if color is None else color
 
         self.canvas = canvas
@@ -420,7 +417,6 @@ class Decor(Agent):
     """Класс для создания деревьев-препятствий для снарядов на холсте `canvas`.
     Создается и наследует методы от абстрактного класса `Agent(ABC)`.
     """
-
     def __init__(self, canvas, x=None, y=None, job_init=None):
         super().__init__()
 
@@ -432,21 +428,21 @@ class Decor(Agent):
         self.canvas = canvas
         # ствол дерева
         self.id1 = self.canvas.create_polygon(x, y,
-                                              x + 10, window_size[1],
-                                              x - 10, window_size[1],
+                                              x + 0.01*window_size[0], window_size[1],
+                                              x - 0.01*window_size[0], window_size[1],
                                               fill='brown')
         # крона дерева
         self.id2 = self.canvas.create_polygon(x, y,
-                                              x + 20, y + 40,
-                                              x + 10, y + 40,
-                                              x + 40, y + 90,
-                                              x + 20, y + 90,
-                                              x + 60, y + 150,
-                                              x - 60, y + 150,
-                                              x - 20, y + 90,
-                                              x - 40, y + 90,
-                                              x - 10, y + 40,
-                                              x - 20, y + 40,
+                                              x + 0.015*window_size[0], y + 0.06*window_size[1],
+                                              x + 0.007*window_size[0], y + 0.06*window_size[1],
+                                              x + 0.03*window_size[0], y + 0.12*window_size[1],
+                                              x + 0.015*window_size[0], y + 0.12*window_size[1],
+                                              x + 0.04*window_size[0], y + 0.2*window_size[1],
+                                              x - 0.04*window_size[0], y + 0.2*window_size[1],
+                                              x - 0.015*window_size[0], y + 0.12*window_size[1],
+                                              x - 0.03*window_size[0], y + 0.12*window_size[1],
+                                              x - 0.007*window_size[0], y + 0.06*window_size[1],
+                                              x - 0.015*window_size[0], y + 0.06*window_size[1],
                                               fill='green')
 
         self.canvas.decors[self.id1, self.id2] = self
@@ -503,7 +499,7 @@ class BattleField(tk.Canvas):
         # Номера используются для определения, каким по счету выстрелом была уничтожена цель.
         self.bullet_counter = 0
         self.last_hit_bullet_number = None
-        # self.victory_text_id = self.create_text(0, 0, text='', font='28', fill="grey")
+        self.victory_text_id = self.create_text(0, 0, text='', font='28', fill="grey")
 
         self.catch_victory_job = None
         self.canvas_restart_job = None
@@ -532,7 +528,7 @@ class BattleField(tk.Canvas):
         Gun(self)
 
     def create_targets(self):
-        [Target(self) for _ in range(self.num_targets)]
+        [Target(self, level=self.master.level) for _ in range(self.num_targets)]
         # Не нужно добавлять элемент в словарь `self.targets`, т.к. добавление осуществляется в `Target.__init__()`
 
     def create_decors(self):
@@ -549,7 +545,7 @@ class BattleField(tk.Canvas):
         states = copy.deepcopy(states)
         for state in states:
             job_active = state.pop('job')
-            Target(self, **state, job_init=job_init if job_active else None)
+            Target(self, **state, level=self.master.level, job_init=job_init if job_active else None)
 
     def create_decors_from_states(self, states, job_init):
         states = copy.deepcopy(states)
@@ -636,13 +632,26 @@ class BattleField(tk.Canvas):
         return [abs_x - canvas_x, abs_y - canvas_y]
 
     def show_victory_text(self):
-        #    self.coords(self.victory_text_id, window_size[0] >> 1, window_size[1] >> 1)
-        #    self.itemconfig(self.victory_text_id,
-        #                    text='Вы уничтожили цель {} выстрелом'.format(self.last_hit_bullet_number))
-        self.canvas_restart_job = self.after(VICTORY_MSG_TIME, self.restart)
+        """Проверяет окончание раунда или игры.
+        Если раунда - то повышает уровень, а если окончанию игры - то выводит сообщение."""
+        if self.master.level >= 40:
+            self.remove_gun()
+            self.remove_bullets()
+            self.remove_decors()
+            self.coords(self.victory_text_id, window_size[0] >> 1, window_size[1] >> 1)
+            self.itemconfig(self.victory_text_id,
+                            text=f'               Поздравляем!\n'
+                                 f'Вы поразили {self.master.score} мишеней {self.master.shot} выстрелами.\n\n'
+                                 f'              Игра окончена.'
+                            )
+            self.update()
+            # self.canvas_restart_job = self.after(GAME_OVER_MSG_TIME, self.master.new_game())
+        else:
+            self.canvas_restart_job = self.after(VICTORY_MSG_TIME, self.restart)
+        self.master.report_level()
 
     def catch_victory(self):
-        """Завершает раунд и показывает каким выстрелом сбита цель."""
+        """Завершает раунд"""
         if not self.targets:
             self.catch_victory_job = None
             self.stop()
@@ -657,7 +666,7 @@ class BattleField(tk.Canvas):
 
     def report_hit(self, bullet, target):
         self.last_hit_bullet_number = bullet.bullet_number
-        self.master.report_hit(bullet, target)
+        self.master.report_hit()
 
     def get_state(self):
         state = {
@@ -689,9 +698,7 @@ class BattleField(tk.Canvas):
 
 class MainFrame(tk.Frame):
     """Класс для создания фреймов с отображаемыми результатами и под основное игровое поле.
-    Создается и наследует методы от `tk.Frame`.
-    """
-
+    Создается и наследует методы от `tk.Frame`."""
     def __init__(self, master):
         super().__init__(master)
 
@@ -699,11 +706,11 @@ class MainFrame(tk.Frame):
         self.fr_top = tk.Frame()
         self.fr_top.pack(side=tk.TOP, fill=tk.X)
 
-        self.shot = 0
-        self.shot_tmpl = 'Выстрелов: {}'
-        self.shot_lbl = tk.Label(self.fr_top, fg="orange", text=self.shot_tmpl.format(self.shot),
-                                 font=("Comic Sans MS", 18, "bold"))
-        self.shot_lbl.pack(side=tk.LEFT)
+        self.level = 0
+        self.level_tmpl = 'Уровень: {}'
+        self.level_lbl = tk.Label(self.fr_top, fg="blue", text=self.level_tmpl.format(self.level),
+                                  font=("Comic Sans MS", 18, "bold"))
+        self.level_lbl.pack(side=tk.LEFT)
 
         self.score = 0
         self.score_tmpl = 'Попаданий: {}'
@@ -711,12 +718,20 @@ class MainFrame(tk.Frame):
                                   font=("Comic Sans MS", 18, "bold"))
         self.score_lbl.pack(side=tk.RIGHT)
 
+        self.shot = 0
+        self.shot_tmpl = 'Выстрелов: {}'
+        self.shot_lbl = tk.Label(self.fr_top, fg="orange", text=self.shot_tmpl.format(self.shot),
+                                 font=("Comic Sans MS", 18, "bold"))
+        self.shot_lbl.pack(side=tk.RIGHT)
+
         self.battlefield = BattleField(self)
         self.battlefield.pack(fill=tk.BOTH, expand=1)
 
     def new_game(self):
         self.shot = 0
         self.shot_lbl['text'] = self.shot_tmpl.format(self.shot)
+        self.level = 0
+        self.level_lbl['text'] = self.level_tmpl.format(self.level)
         self.score = 0
         self.score_lbl['text'] = self.score_tmpl.format(self.score)
         self.battlefield.restart()
@@ -730,16 +745,21 @@ class MainFrame(tk.Frame):
     def pause(self):
         self.battlefield.pause()
 
+    def report_level(self):
+        self.level += 1
+        self.level_lbl['text'] = self.level_tmpl.format(self.level)
+
     def report_shot(self):
         self.shot += 1
         self.shot_lbl['text'] = self.shot_tmpl.format(self.shot)
 
-    def report_hit(self, bullet, target):
+    def report_hit(self):
         self.score += 1
         self.score_lbl['text'] = self.score_tmpl.format(self.score)
 
     def get_state(self):
         state = {
+            'level': self.level,
             'shot': self.shot,
             'score': self.score,
             'battlefield': self.battlefield.get_state(),
@@ -748,6 +768,8 @@ class MainFrame(tk.Frame):
         return state
 
     def set_state(self, state, job_init):
+        self.level = state['level']
+        self.level_lbl['text'] = self.level_tmpl.format(self.level)
         self.shot = state['shot']
         self.shot_lbl['text'] = self.shot_tmpl.format(self.shot)
         self.score = state['score']
@@ -757,7 +779,6 @@ class MainFrame(tk.Frame):
 
 class Menu(tk.Menu):
     """Класс для создания игрового меню. Создается и наследует методы от `tk.Menu`."""
-
     def __init__(self, master, game):
         super().__init__(master)
 
@@ -778,7 +799,6 @@ class Menu(tk.Menu):
 
 class GunGameApp(tk.Tk):
     """Основной класс приложения-формы. Создается и наследует методы от `tk.Tk`."""
-
     def __init__(self):
         super().__init__()
         self.geometry('{}x{}+0+0'.format(*window_size))
@@ -800,6 +820,7 @@ class GunGameApp(tk.Tk):
 
         self.bind('<Configure>', self.app_resize)
         self.bind("<Control-s>", self.save)
+        self.bind("<Control-l>", self.load)
 
     def app_resize(self, event=None):
         """Процедура пропорционального изменения координат виджетов игры в зависимости от изменения размеров формы"""
@@ -829,7 +850,7 @@ class GunGameApp(tk.Tk):
     def set_state(self, state, job_init='pause'):
         """Создает игру соответствующую состоянию `state`.
         Применяется к состояниям приложения полученным с помощью метода `GunGameApp.get_state()`.
-        `state` содержит значения всех изменяющихся в процессе игры признаков. Эти значения присваются признакам
+        `state` содержит значения всех изменяющихся в процессе игры признаков. Эти значения присваиваются признакам
         `MainFrame`, `BattleField`, пушке с фоном, мишени, деревьям и снарядам.
         Отложенным событиям, которым соответствует `True` в `state`, присваивается значение `job_init`.
         Если `job_init == 'pause'`, то после выполнения `GunGameApp.set_state()` игра может быть запущена
@@ -899,21 +920,21 @@ class GunGameApp(tk.Tk):
         self.main_frame.new_game()
 
     def pause(self):
-        """Приостанавливает игру. Отложенным задачам присвваивается значение `'pause'`.
-        Игру можно возобновить с помощью метода `GunGameApp.play()`.
-        """
+        """Приостанавливает игру. Отложенным задачам присваивается значение `'pause'`.
+        Игру можно возобновить с помощью метода `GunGameApp.play()`."""
         self.main_frame.pause()
 
     def play(self):
         self.main_frame.play()
 
     def stop(self):
-        """Снимает все отложенные задачи. Отложенным задачам присваиватеся `None`."""
+        """Снимает все отложенные задачи. Отложенным задачам присваивается `None`."""
         self.main_frame.stop()
 
 
-# глобальая переменная с первоначальными размерами формы, изменяется методом `set_window_size()`
+# глобальная переменная с первоначальными размерами формы, изменяется методом `set_window_size()`
 window_size = [1000, 700]
+
 app = GunGameApp()
 app.state('zoomed')
 app.mainloop()
