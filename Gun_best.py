@@ -217,9 +217,9 @@ class Gun(Agent):
         self.job = job_init
         self.gun_velocity = 2  # шаг движения пушки по вертикали
         self.gun_power_gain = 1  # приращение мощности пушки
-        # мин. мощность пушки, зависит от размеров игрового поля
+        # Мин мощность пушки, зависит от размеров игрового поля
         self.min_gun_power = 2 * round(math.sqrt(window_size[0]**2 + window_size[1]**2) // 400)
-        # макс. мощность пушки, зависит от размеров игрового поля
+        # Макс мощность пушки, зависит от размеров игрового поля
         self.max_gun_power = 10 * round(math.sqrt(window_size[0]**2 + window_size[1]**2) // 400)
         self.zero_power_length = 10
 
@@ -232,7 +232,7 @@ class Gun(Agent):
 
         self.canvas = canvas
         self.img = Image.open(BACKGROUND)
-        self.img = self.img.resize((window_size[0], window_size[1]), Image.ANTIALIAS)
+        self.img = self.img.resize((window_size[0], window_size[1]), Image.LANCZOS)
         self.image = ImageTk.PhotoImage(self.img)
         self.id1 = self.canvas.create_image(window_size[0] >> 1, window_size[1] >> 1, image=self.image)
 
